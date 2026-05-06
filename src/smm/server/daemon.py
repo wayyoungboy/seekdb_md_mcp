@@ -7,7 +7,6 @@ import os
 import signal
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
 
 from smm.core.config import PID_PATH, LOG_PATH, SMM_DIR, load_config
 from smm.core.db import get_client, close_client
@@ -19,9 +18,7 @@ logger = logging.getLogger("smm.daemon")
 def setup_logging() -> logging.Logger:
     SMM_DIR.mkdir(parents=True, exist_ok=True)
     handler = logging.FileHandler(LOG_PATH)
-    handler.setFormatter(logging.Formatter(
-        "%(asctime)s [%(name)s] %(levelname)s %(message)s"
-    ))
+    handler.setFormatter(logging.Formatter("%(asctime)s [%(name)s] %(levelname)s %(message)s"))
 
     root = logging.getLogger("smm")
     root.setLevel(logging.INFO)
@@ -32,16 +29,20 @@ def setup_logging() -> logging.Logger:
 
 
 def _write_pid(cfg: dict) -> None:
-    PID_PATH.write_text(json.dumps({
-        "pid": os.getpid(),
-        "started_at": datetime.now(timezone.utc).isoformat(),
-        "web_port": cfg["web"]["port"],
-        "sse_port": cfg["mcp"]["sse_port"],
-        "watch_dirs": [
-            {"path": wd["path"], "collection": wd["collection"]}
-            for wd in cfg.get("watch_dirs", [])
-        ],
-    }))
+    PID_PATH.write_text(
+        json.dumps(
+            {
+                "pid": os.getpid(),
+                "started_at": datetime.now(timezone.utc).isoformat(),
+                "web_port": cfg["web"]["port"],
+                "sse_port": cfg["mcp"]["sse_port"],
+                "watch_dirs": [
+                    {"path": wd["path"], "collection": wd["collection"]}
+                    for wd in cfg.get("watch_dirs", [])
+                ],
+            }
+        )
+    )
 
 
 async def start_daemon(cfg: dict) -> None:
@@ -65,11 +66,10 @@ async def start_daemon(cfg: dict) -> None:
 
     # 1. Web server
     from smm.server.app import create_app
-    from smm.server.mcp_sse import create_mcp_sse_app
-    from smm.core.db import get_or_create_collection
 
     app = create_app(cfg, client)
     import uvicorn
+
     config = uvicorn.Config(
         app=app,
         host=cfg["web"]["host"],

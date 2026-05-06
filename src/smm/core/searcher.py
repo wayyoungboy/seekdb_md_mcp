@@ -88,10 +88,12 @@ def _format_results(result: Any) -> list[dict]:
 
     items = []
     for i in range(len(ids)):
-        items.append({
-            "id": ids[i] if isinstance(ids, list) else ids,
-            "content": documents[i] if isinstance(documents, list) else documents,
-            "metadata": metadatas[i] if metadatas else {},
-            "score": 1.0 - distances[i] if isinstance(distances, list) and distances else 0.5,
-        })
+        items.append(
+            {
+                "id": ids[i] if isinstance(ids, list) else ids,
+                "content": documents[i] if isinstance(documents, list) else documents,
+                "metadata": metadatas[i] if metadatas else {},
+                "score": 1.0 - distances[i] if isinstance(distances, list) and distances else 0.5,
+            }
+        )
     return items

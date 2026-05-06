@@ -135,10 +135,12 @@ def add_watch_dir(cfg: dict[str, Any], path: str, collection: str) -> dict[str, 
         if normalize_path(wd["path"]) == abs_path:
             return cfg
 
-    cfg.setdefault("watch_dirs", []).append({
-        "path": abs_path,
-        "collection": collection,
-    })
+    cfg.setdefault("watch_dirs", []).append(
+        {
+            "path": abs_path,
+            "collection": collection,
+        }
+    )
     save_config(cfg)
     return cfg
 

@@ -79,24 +79,28 @@ def _build_embedding_function(cfg: dict[str, Any]) -> Any:
     ef_cfg = cfg["embedding"]
     if provider == "openai":
         from pyseekdb.embedding_functions import OpenAIEmbeddingFunction
+
         return OpenAIEmbeddingFunction(
             api_key=ef_cfg["api_key"],
             model_name=ef_cfg.get("model", "text-embedding-3-small"),
         )
     elif provider == "ollama":
         from pyseekdb.embedding_functions import OllamaEmbeddingFunction
+
         return OllamaEmbeddingFunction(
             model_name=ef_cfg.get("model", "all-minilm"),
             url=ef_cfg.get("url", "http://localhost:11434"),
         )
     elif provider == "jina":
         from pyseekdb.embedding_functions import JinaEmbeddingFunction
+
         return JinaEmbeddingFunction(
             api_key=ef_cfg["api_key"],
             model_name=ef_cfg.get("model", "jina-embeddings-v3"),
         )
     elif provider == "huggingface":
         from pyseekdb.embedding_functions import HuggingFaceEmbeddingFunction
+
         return HuggingFaceEmbeddingFunction(
             model_name=ef_cfg.get("model", "all-MiniLM-L6-v2"),
         )

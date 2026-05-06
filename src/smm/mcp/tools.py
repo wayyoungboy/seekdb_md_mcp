@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 from pathlib import Path
 
@@ -14,6 +13,7 @@ logger = logging.getLogger("smm.mcp.tools")
 
 def _get_cfg() -> dict:
     from smm.mcp.server import _current_cfg
+
     return _current_cfg or load_config()
 
 
@@ -59,17 +59,21 @@ async def smm_list_collections() -> list[dict]:
             try:
                 collection = get_or_create_collection(client, coll_name, cfg)
                 count = collection.count()
-                result.append({
-                    "collection": coll_name,
-                    "path": wd["path"],
-                    "total_chunks": count,
-                })
+                result.append(
+                    {
+                        "collection": coll_name,
+                        "path": wd["path"],
+                        "total_chunks": count,
+                    }
+                )
             except Exception as e:
-                result.append({
-                    "collection": coll_name,
-                    "path": wd["path"],
-                    "error": str(e),
-                })
+                result.append(
+                    {
+                        "collection": coll_name,
+                        "path": wd["path"],
+                        "error": str(e),
+                    }
+                )
         return result
     finally:
         close_client()
@@ -107,7 +111,12 @@ async def smm_import_tool(path: str, collection: str | None = None) -> dict:
 
         if Path(abs_path).is_dir():
             stats = await index_directory(client, abs_path, coll_name, cfg)
-            return {"action": "imported_directory", "path": abs_path, "collection": coll_name, **stats}
+            return {
+                "action": "imported_directory",
+                "path": abs_path,
+                "collection": coll_name,
+                **stats,
+            }
         else:
             stats = await index_file(client, abs_path, coll_name, cfg)
             return {"action": "imported_file", "path": abs_path, "collection": coll_name, **stats}
@@ -123,10 +132,10 @@ async def smm_remove_tool(file_path: str | None = None, collection: str | None =
         if collection:
             client.delete_collection(collection)
             cfg["watch_dirs"] = [
-                wd for wd in cfg.get("watch_dirs", [])
-                if wd["collection"] != collection
+                wd for wd in cfg.get("watch_dirs", []) if wd["collection"] != collection
             ]
             from smm.core.config import save_config
+
             save_config(cfg)
             return {"action": "removed_collection", "collection": collection}
         elif file_path:
@@ -149,6 +158,7 @@ async def smm_status_tool() -> dict:
     """Get daemon status and index statistics."""
     import json
     from smm.core.config import PID_PATH
+
     cfg = _get_cfg()
 
     running = False
@@ -158,6 +168,7 @@ async def smm_status_tool() -> dict:
         pid = data["pid"]
         try:
             import os
+
             os.kill(pid, 0)
             running = True
         except OSError:

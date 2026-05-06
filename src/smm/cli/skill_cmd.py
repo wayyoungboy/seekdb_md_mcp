@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import shutil
-import subprocess
 
 import click
 
@@ -53,6 +52,7 @@ def _uninstall_skill() -> None:
 
 def _find_skill_source() -> str | None:
     from smm import __file__ as smm_init
+
     if smm_init:
         candidate = os.path.join(os.path.dirname(smm_init), "skill", "SKILL.md")
         if os.path.exists(candidate):

@@ -35,12 +35,14 @@ def chunk_document(
         if len(chunk.text) > max_size:
             sub_chunks = _split_oversized(chunk.text, max_size, overlap)
             for sc in sub_chunks:
-                result.append(Chunk(
-                    text=sc,
-                    index=idx,
-                    heading=chunk.heading,
-                    metadata=chunk.metadata,
-                ))
+                result.append(
+                    Chunk(
+                        text=sc,
+                        index=idx,
+                        heading=chunk.heading,
+                        metadata=chunk.metadata,
+                    )
+                )
                 idx += 1
         else:
             chunk.index = idx
@@ -85,9 +87,7 @@ def _chunk_markdown(content: str) -> list[Chunk]:
 
 
 def _chunk_rst(content: str) -> list[Chunk]:
-    section_pattern = re.compile(
-        r"^(.+)\n([=\-~`:'\"^_*+#]{3,})$", re.MULTILINE
-    )
+    section_pattern = re.compile(r"^(.+)\n([=\-~`:'\"^_*+#]{3,})$", re.MULTILINE)
     chunks: list[Chunk] = []
     positions = []
     for m in section_pattern.finditer(content):

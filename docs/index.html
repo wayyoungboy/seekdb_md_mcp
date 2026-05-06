@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMM — seekdb Markdown MCP</title>
+  <meta name="description" content="Index local Markdown/TXT/RST documents into seekdb. Provide MCP service for AI tool integration with real-time file watching and web dashboard." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0d0b1a;
+      --bg-card: #13112a;
+      --bg-card-hover: #1a1830;
+      --border: #2d2a4a;
+      --accent: #a78bfa;
+      --accent-hover: #c4b5fd;
+      --accent-dim: #a78bfa22;
+      --text: #e2e0f0;
+      --text-dim: #9ca3af;
+      --text-muted: #6b7280;
+      --success: #34d399;
+      --red: #ff5f57;
+      --yellow: #febc2e;
+      --green: #28c840;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+    /* NAV */
+    nav {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-weight: 700; font-size: 18px; color: var(--accent); }
+    .nav-links { display: flex; gap: 24px; font-size: 13px; }
+    .nav-links a { color: var(--text-dim); transition: color .2s; }
+    .nav-links a:hover { color: var(--text); }
+
+    /* HERO */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, var(--accent-dim) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 700;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero .subtitle {
+      color: var(--text-dim);
+      font-size: 14px;
+      max-width: 560px;
+      margin: 0 auto 32px;
+      position: relative;
+    }
+    .hero .tagline {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    /* BADGES */
+    .badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; position: relative; }
+    .badge {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-dim);
+    }
+
+    /* BUTTONS */
+    .btn-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    .btn-primary:hover { background: var(--accent-hover); color: var(--bg); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--text); }
+
+    /* SECTIONS */
+    section { padding: 60px 0; }
+    section + section { border-top: 1px solid var(--border); }
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .section-title span { color: var(--accent); }
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-bottom: 32px;
+    }
+
+    /* FEATURES GRID */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color .2s;
+    }
+    .feature-card:hover { border-color: var(--accent); }
+    .feature-icon { font-size: 20px; margin-bottom: 8px; }
+    .feature-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .feature-card p { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+
+    /* CODE BLOCK */
+    .code-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card-hover);
+    }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-dot.r { background: var(--red); }
+    .code-dot.y { background: var(--yellow); }
+    .code-dot.g { background: var(--green); }
+    .code-header span { margin-left: 8px; font-size: 11px; color: var(--text-muted); }
+    .code-body {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .code-body pre {
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-dim);
+    }
+    .code-body .cmd { color: var(--accent); }
+    .code-body .comment { color: var(--text-muted); }
+
+    /* ARCHITECTURE */
+    .arch-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .arch-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .arch-step .label {
+      padding: 8px 16px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      min-width: 100px;
+      text-align: center;
+    }
+    .arch-step .desc {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* QUICK START */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      counter-reset: step;
+    }
+    .step {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      counter-increment: step;
+    }
+    .step::before {
+      content: counter(step, decimal-leading-zero);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .step h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .step p { font-size: 11px; color: var(--text-dim); }
+    .step code {
+      display: block;
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: var(--bg);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    /* STACK */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .stack-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    footer a { color: var(--text-dim); }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .hero { padding: 48px 0 40px; }
+      .nav-links { gap: 16px; }
+      .features { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="container">
+      <div class="logo">smm</div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#quick-start">Quick Start</a>
+        <a href="#architecture">Architecture</a>
+        <a href="https://github.com/wayyoungboy/seekdb_md_mcp" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <p class="tagline">&gt; Zero Config, Auto-Indexing, Semantic Search, Infinite Evolution.</p>
+      <h1>
+        <span>Local</span> Document <span>Search</span> &amp; <span>MCP</span>
+      </h1>
+      <p class="subtitle">
+        Index your local Markdown, TXT, and RST documents into seekdb.
+        Provide MCP service for AI tool integration with real-time file watching and a full-featured web dashboard.
+      </p>
+      <div class="badges">
+        <span class="badge">Python 3.11+</span>
+        <span class="badge">seekdb</span>
+        <span class="badge">MCP Protocol</span>
+        <span class="badge">React + Tailwind</span>
+      </div>
+      <div class="btn-group">
+        <a href="https://github.com/wayyoungboy/seekdb_md_mcp" class="btn btn-primary" target="_blank">
+          View on GitHub
+        </a>
+        <a href="#quick-start" class="btn btn-secondary">Quick Start</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="container">
+      <h2 class="section-title"><span>Capabilities</span></h2>
+      <p class="section-desc">Everything you need to turn local documents into an AI-accessible knowledge base.</p>
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">&#9889;</div>
+          <h3>Semantic Search</h3>
+          <p>Vector-based semantic search understands query intent, not just keyword matching. Supports hybrid, vector, and fulltext modes.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#128260;</div>
+          <h3>Real-time Sync</h3>
+          <p>Automatically watches directories for changes. New, modified, or deleted files are indexed in real time with 0.5s debounce.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#129513;</div>
+          <h3>MCP Integration</h3>
+          <p>Exposes MCP service via both stdio and SSE transports. Works with Claude Code, Cursor, and any MCP-compatible AI tool.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#128196;</div>
+          <h3>Smart Chunking</h3>
+          <p>Intelligent semantic chunking: Markdown by headings, TXT by paragraphs, RST by sections. Handles oversized text automatically.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#128260;</div>
+          <h3>Multi-Collection</h3>
+          <p>Each watched directory maps to an independent collection. Scoped search or cross-collection merge with score normalization.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#127760;</div>
+          <h3>Web Dashboard</h3>
+          <p>Full-featured web UI: search, document management, configuration editing, and real-time log streaming via WebSocket.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK START -->
+  <section id="quick-start">
+    <div class="container">
+      <h2 class="section-title"><span>Quick Start</span></h2>
+      <p class="section-desc">Get up and running in three commands.</p>
+      <div class="steps">
+        <div class="step">
+          <h3>Install</h3>
+          <p>Clone and install with pip.</p>
+          <code>pip install -e .</code>
+        </div>
+        <div class="step">
+          <h3>Initialize</h3>
+          <p>Create config directory and database.</p>
+          <code>smm init</code>
+        </div>
+        <div class="step">
+          <h3>Import</h3>
+          <p>Index your documents.</p>
+          <code>smm import /path/to/docs</code>
+        </div>
+        <div class="step">
+          <h3>Launch</h3>
+          <p>Start web UI + file watcher.</p>
+          <code>smm serve --daemon</code>
+        </div>
+      </div>
+
+      <div class="code-block" style="margin-top:32px;">
+        <div class="code-header">
+          <div class="code-dot r"></div>
+          <div class="code-dot y"></div>
+          <div class="code-dot g"></div>
+          <span>terminal</span>
+        </div>
+        <div class="code-body">
+<pre><span class="comment"># Install dependencies</span>
+<span class="cmd">pip install -e ".[dev]"</span>
+
+<span class="comment"># Initialize configuration</span>
+<span class="cmd">smm init</span>
+
+<span class="comment"># Import documents from a directory</span>
+<span class="cmd">smm import ~/my-notes</span>
+
+<span class="comment"># Start web UI with file watcher (background)</span>
+<span class="cmd">smm serve --daemon</span>
+
+<span class="comment"># Or start MCP server for AI tools</span>
+<span class="cmd">smm mcp</span>
+
+<span class="comment"># Search from CLI</span>
+<span class="cmd">smm search "how to deploy" --mode hybrid</span>
+
+<span class="comment"># Check daemon status</span>
+<span class="cmd">smm status</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture">
+    <div class="container">
+      <h2 class="section-title"><span>Architecture</span></h2>
+      <p class="section-desc">CLI + Daemon architecture with clear component boundaries.</p>
+      <div class="arch-flow">
+        <div class="arch-step">
+          <div class="label">CLI</div>
+          <div class="desc">smm init / import / search / mcp / status / stop</div>
+        </div>
+        <div class="arch-step">
+          <div class="label">Daemon</div>
+          <div class="desc">FastAPI Web UI + File Watcher + SSE MCP Endpoint</div>
+        </div>
+        <div class="arch-step">
+          <div class="label">seekdb</div>
+          <div class="desc">Embedded or Server mode — HNSW vector index + fulltext index</div>
+        </div>
+        <div class="arch-step">
+          <div class="label">MCP</div>
+          <div class="desc">search / import / get_document / list_collections / reindex / status</div>
+        </div>
+        <div class="arch-step">
+          <div class="label">Skill</div>
+          <div class="desc">Claude Code skill for natural language interaction</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section>
+    <div class="container">
+      <h2 class="section-title"><span>Tech Stack</span></h2>
+      <p class="section-desc">Built with modern, battle-tested tools.</p>
+      <div class="stack-grid">
+        <div class="stack-item">&#128013; Python 3.11+</div>
+        <div class="stack-item">&#128270; seekdb (pyseekdb)</div>
+        <div class="stack-item">&#128640; FastAPI</div>
+        <div class="stack-item">&#9889; Uvicorn</div>
+        <div class="stack-item">&#128196; click (CLI)</div>
+        <div class="stack-item">&#128065; watchfiles</div>
+        <div class="stack-item">&#129302; MCP SDK</div>
+        <div class="stack-item">&#9883; React 18</div>
+        <div class="stack-item">&#9889; Vite</div>
+        <div class="stack-item">&#127752; Tailwind CSS</div>
+        <div class="stack-item">&#128204; YAML config</div>
+        <div class="stack-item">&#128274; Claude Code skill</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <p>
+        Powered by <a href="https://github.com/oceanbase/seekdb" target="_blank">seekdb</a>
+        &middot; Built by <a href="https://github.com/wayyoungboy" target="_blank">wayyoungboy</a>
+        &middot; <a href="https://github.com/wayyoungboy/seekdb_md_mcp" target="_blank">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>

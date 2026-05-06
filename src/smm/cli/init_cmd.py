@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import click
 
-from smm.core.config import init_config, save_config
+from smm.core.config import init_config
 
 
 @click.command()
@@ -18,7 +18,7 @@ def init() -> None:
         db_info = f"server ({srv['host']}:{srv['port']})"
 
     click.echo("\nsmm initialized successfully!")
-    click.echo(f"\nConfig: ~/.smm/config.yaml")
+    click.echo("\nConfig: ~/.smm/config.yaml")
     click.echo(f"Database: {db_info}")
     click.echo("\nNext steps:")
     click.echo("  smm import /path/to/docs    Import documents")

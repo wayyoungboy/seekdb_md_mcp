@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import os
-import signal
+import asyncio
 import subprocess
 import sys
 
@@ -9,6 +8,31 @@ import click
 
 from smm.core.config import load_config, PID_PATH
 from smm.server.daemon import start_daemon
+
+
+def _stop_daemon() -> None:
+    """Stop the running daemon."""
+    import json
+    import os
+    import signal
+    import time
+
+    if not PID_PATH.exists():
+        return
+    data = json.loads(PID_PATH.read_text())
+    pid = data["pid"]
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except OSError:
+        pass
+    for _ in range(20):
+        try:
+            os.kill(pid, 0)
+            time.sleep(0.5)
+        except OSError:
+            break
+    if PID_PATH.exists():
+        PID_PATH.unlink()
 
 
 @click.command()
@@ -32,7 +56,7 @@ def serve(daemon: bool, port: int | None, restart: bool) -> None:
     if daemon:
         _start_background(cfg)
     else:
-        start_daemon(cfg)
+        asyncio.run(start_daemon(cfg))
 
 
 def _start_background(cfg: dict) -> None:

@@ -66,16 +66,18 @@ async def index_file(
         chunk_id = hashlib.sha256(f"{abs_path}:{ch.index}".encode()).hexdigest()
         ids.append(chunk_id)
         documents.append(ch.text)
-        metadatas.append({
-            "file_path": abs_path,
-            "file_name": file_name,
-            "file_type": file_type,
-            "chunk_index": ch.index,
-            "total_chunks": total,
-            "heading": ch.heading,
-            "file_hash": content_hash,
-            "indexed_at": now,
-        })
+        metadatas.append(
+            {
+                "file_path": abs_path,
+                "file_name": file_name,
+                "file_type": file_type,
+                "chunk_index": ch.index,
+                "total_chunks": total,
+                "heading": ch.heading,
+                "file_hash": content_hash,
+                "indexed_at": now,
+            }
+        )
 
     if existing:
         existing_ids = [d["id"] for d in existing]

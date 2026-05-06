@@ -14,8 +14,13 @@ from smm.core.searcher import search
 @click.command()
 @click.argument("query")
 @click.option("--scope", "-s", default=None, help="Collection name(s), comma-separated")
-@click.option("--mode", "-m", default=None, type=click.Choice(["vector", "fulltext", "hybrid"]),
-              help="Search mode (default from config)")
+@click.option(
+    "--mode",
+    "-m",
+    default=None,
+    type=click.Choice(["vector", "fulltext", "hybrid"]),
+    help="Search mode (default from config)",
+)
 @click.option("--n-results", "-n", default=None, type=int, help="Number of results")
 def search_cmd(query: str, scope: str | None, mode: str | None, n_results: int | None) -> None:
     """Search indexed documents."""

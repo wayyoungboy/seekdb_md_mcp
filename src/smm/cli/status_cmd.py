@@ -6,7 +6,7 @@ import time
 
 import click
 
-from smm.core.config import PID_PATH, LOG_PATH
+from smm.core.config import PID_PATH
 
 
 @click.command()
@@ -18,6 +18,7 @@ def status() -> None:
         return
 
     import json
+
     data = json.loads(PID_PATH.read_text())
     pid = data["pid"]
 
@@ -50,6 +51,7 @@ def stop() -> None:
         return
 
     import json
+
     data = json.loads(PID_PATH.read_text())
     pid = data["pid"]
 

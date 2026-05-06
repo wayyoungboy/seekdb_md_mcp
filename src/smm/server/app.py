@@ -13,12 +13,15 @@ from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 
 from smm.core.config import (
-    load_config, save_config, resolve_collection_name, add_watch_dir,
-    normalize_path, SMM_DIR, PID_PATH,
+    save_config,
+    resolve_collection_name,
+    add_watch_dir,
+    normalize_path,
+    PID_PATH,
 )
-from smm.core.db import get_client, close_client, get_or_create_collection
+from smm.core.db import get_or_create_collection
 from smm.core.searcher import search as do_search
-from smm.core.indexer import index_directory, index_file, remove_file
+from smm.core.indexer import index_directory, index_file
 
 logger = logging.getLogger("smm.server")
 
@@ -77,10 +80,12 @@ def create_app(cfg: dict, client) -> FastAPI:
     # --- API Routes ---
 
     @app.get("/api/search")
-    async def api_search(query: str, scope: str | None = None, mode: str = "hybrid", n_results: int = 10):
+    async def api_search(
+        query: str, scope: str | None = None, mode: str = "hybrid", n_results: int = 10
+    ):
         collections = resolve_collections(scope, _cfg)
         results = await do_search(_client, query, collections, _cfg, mode, n_results)
-        broadcast_log(f"[search] query=\"{query}\" scope={scope or 'all'} mode={mode}")
+        broadcast_log(f'[search] query="{query}" scope={scope or "all"} mode={mode}')
         return results
 
     @app.get("/api/collections")
@@ -91,11 +96,13 @@ def create_app(cfg: dict, client) -> FastAPI:
             try:
                 collection = get_or_create_collection(_client, coll_name, _cfg)
                 count = collection.count()
-                result.append({
-                    "collection": coll_name,
-                    "path": wd["path"],
-                    "total_chunks": count,
-                })
+                result.append(
+                    {
+                        "collection": coll_name,
+                        "path": wd["path"],
+                        "total_chunks": count,
+                    }
+                )
             except Exception as e:
                 result.append({"collection": coll_name, "path": wd["path"], "error": str(e)})
         return result
@@ -107,7 +114,6 @@ def create_app(cfg: dict, client) -> FastAPI:
         files: dict[str, dict] = {}
         if result and result.get("metadatas"):
             metadatas = result["metadatas"] or []
-            ids = result.get("ids", []) or []
             for i, meta in enumerate(metadatas):
                 fp = meta.get("file_path", "unknown")
                 if fp not in files:
@@ -135,10 +141,7 @@ def create_app(cfg: dict, client) -> FastAPI:
     @app.delete("/api/collections/{name}")
     async def api_delete_collection(name: str):
         _client.delete_collection(name)
-        _cfg["watch_dirs"] = [
-            wd for wd in _cfg.get("watch_dirs", [])
-            if wd["collection"] != name
-        ]
+        _cfg["watch_dirs"] = [wd for wd in _cfg.get("watch_dirs", []) if wd["collection"] != name]
         save_config(_cfg)
         broadcast_log(f"[delete] collection {name} removed")
         return {"status": "deleted"}
@@ -194,6 +197,7 @@ def create_app(cfg: dict, client) -> FastAPI:
     async def api_stop_daemon():
         if PID_PATH.exists():
             import json
+
             data = json.loads(PID_PATH.read_text())
             os.kill(data["pid"], 15)
         return {"status": "stopping"}
@@ -202,6 +206,7 @@ def create_app(cfg: dict, client) -> FastAPI:
     async def api_restart_daemon():
         if PID_PATH.exists():
             import json
+
             data = json.loads(PID_PATH.read_text())
             os.kill(data["pid"], 15)
         return {"status": "restarting"}
@@ -243,9 +248,12 @@ def create_app(cfg: dict, client) -> FastAPI:
                 return FileResponse(file_path)
             return FileResponse(web_dist / "index.html")
     else:
+
         @app.get("/")
         async def root():
-            return HTMLResponse("<h1>SMM</h1><p>Frontend not built. Run: cd web && npm run build</p>")
+            return HTMLResponse(
+                "<h1>SMM</h1><p>Frontend not built. Run: cd web && npm run build</p>"
+            )
 
     return app
 

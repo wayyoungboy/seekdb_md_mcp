@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 
-from mcp.server.fastmcp import FastMCP
 
 from smm.mcp.server import get_mcp_server
 
@@ -22,8 +21,10 @@ def create_mcp_sse_app(cfg: dict):
         async with sse.connect_sse(scope, receive, send) as streams:
             await server.run(streams[0], streams[1], server.create_initialization_options())
 
-    app = Starlette(routes=[
-        Route("/sse", endpoint=handle_sse),
-        Mount("/messages/", app=sse.handle_post_message),
-    ])
+    app = Starlette(
+        routes=[
+            Route("/sse", endpoint=handle_sse),
+            Mount("/messages/", app=sse.handle_post_message),
+        ]
+    )
     return app

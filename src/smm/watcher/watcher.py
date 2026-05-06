@@ -8,7 +8,7 @@ from pathlib import Path
 from watchfiles import Change, awatch, DefaultFilter
 
 from smm.core.config import normalize_path
-from smm.core.indexer import index_file, reindex_file, remove_file, _is_supported
+from smm.core.indexer import reindex_file, remove_file, _is_supported
 
 logger = logging.getLogger("smm.watcher")
 
@@ -71,9 +71,7 @@ class DirectoryWatcher:
                     break
                 await self._handle_changes(file_path, change_types, collection)
 
-    async def _handle_changes(
-        self, file_path: str, change_types: set, collection: str
-    ) -> None:
+    async def _handle_changes(self, file_path: str, change_types: set, collection: str) -> None:
         now = time.monotonic()
 
         key = file_path
